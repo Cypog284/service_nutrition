@@ -1,27 +1,22 @@
-import React from 'react';
-import { Redirect, Stack } from 'expo-router';
-import { ActivityIndicator, View } from 'react-native';
-import { useAuth } from '@clerk/clerk-expo';
+import React from "react";
+import { Redirect, Slot } from "expo-router";
+import { useAuth } from "@clerk/clerk-expo";
+import { View, ActivityIndicator } from "react-native";
 
 export default function AuthLayout() {
   const { isLoaded, isSignedIn } = useAuth();
 
   if (!isLoaded) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />
       </View>
     );
   }
 
   if (isSignedIn) {
-    return <Redirect href="/(main)/(home)" />;
+    return <Redirect href="/" />;
   }
 
-  return (
-    <Stack>
-      <Stack.Screen name="login" options={{ title: 'Connexion' }} />
-      <Stack.Screen name="signup" options={{ title: 'Inscription' }} />
-    </Stack>
-  );
+  return <Slot />;
 }
