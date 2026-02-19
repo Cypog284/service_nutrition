@@ -1,15 +1,25 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { Link } from 'expo-router';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { Redirect } from 'expo-router';
+import { useAuth } from '@clerk/clerk-expo';
 
 export default function Page() {
+  const { isLoaded, isSignedIn } = useAuth();
+
+  if (!isLoaded) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (isSignedIn) {
+    return <Redirect href="/(main)/(home)" />;
+  }
+
   return (
-    <View style={styles.center}>
-     <Text>Loading...</Text>
-     <Link href="/login" style={{ marginTop: 20, color: 'blue' }}>
-        Go to Login
-      </Link>
-    </View>
+    <Redirect href="/(auth)/login" />
   );
 }
 

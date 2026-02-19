@@ -15,7 +15,7 @@ export default function AuthLayout() {
   }
 
   if (isSignedIn) {
-    return <Redirect href="/" />;
+    return <Redirect href="/(main)/(home)" />;
   }
 
   return <Slot />;

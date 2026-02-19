@@ -9,6 +9,11 @@ export default function SignupScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [username, setUsername] = useState('');
+  const [code, setCode] = useState('');
+  const [pendingVerification, setPendingVerification] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function onSignup() {
@@ -18,12 +23,22 @@ export default function SignupScreen() {
 
     try {
       setLoading(true);
-      const result = await signUp.create({ emailAddress: email.trim(), password });
-      if (result.createdSessionId) {
-        await setActive({ session: result.createdSessionId });
+      const normalizedUsername = username.trim().toLowerCase().replace(/\s+/g, '');
+      const createdSignUp = await signUp.create({
+        emailAddress: email.trim().toLowerCase(),
+        password,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        username: normalizedUsername,
+      });
+
+      if (createdSignUp.status === 'complete' && createdSignUp.createdSessionId) {
+        await setActive({ session: createdSignUp.createdSessionId });
         router.replace('/(main)/(home)');
       } else {
-        Alert.alert('Inscription creee', 'Verification supplementaire requise dans Clerk.');
+        await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+        setPendingVerification(true);
+        Alert.alert('Code envoye', 'Entre le code recu par email pour terminer l inscription.');
       }
     } catch (error: any) {
       Alert.alert('Inscription impossible', error?.errors?.[0]?.message || 'Verifie les informations.');
@@ -32,9 +47,53 @@ export default function SignupScreen() {
     }
   }
 
+  async function onVerifyEmail() {
+    if (!isLoaded || !pendingVerification) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const verification = await signUp.attemptEmailAddressVerification({ code: code.trim() });
+
+      if (verification.status === 'complete' && verification.createdSessionId) {
+        await setActive({ session: verification.createdSessionId });
+        router.replace('/(main)/(home)');
+      } else {
+        Alert.alert('Verification impossible', 'Le compte n est pas encore valide.');
+      }
+    } catch (error: any) {
+      Alert.alert('Code invalide', error?.errors?.[0]?.message || 'Verifie le code saisi.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Text style={styles.title}>Inscription</Text>
+      <TextInput
+        placeholder="Prenom"
+        value={firstName}
+        autoCapitalize="words"
+        onChangeText={setFirstName}
+        style={styles.input}
+      />
+      <TextInput
+        placeholder="Nom"
+        value={lastName}
+        autoCapitalize="words"
+        onChangeText={setLastName}
+        style={styles.input}
+      />
+      <TextInput
+        placeholder="Username"
+        value={username}
+        autoCapitalize="none"
+        autoCorrect={false}
+        onChangeText={setUsername}
+        style={styles.input}
+      />
       <TextInput
         placeholder="Email"
         value={email}
@@ -50,9 +109,24 @@ export default function SignupScreen() {
         onChangeText={setPassword}
         style={styles.input}
       />
-      <Pressable style={styles.button} disabled={loading} onPress={onSignup}>
-        <Text style={styles.buttonText}>{loading ? 'Inscription...' : "S'inscrire"}</Text>
-      </Pressable>
+      {pendingVerification ? (
+        <>
+          <TextInput
+            placeholder="Code de verification"
+            value={code}
+            keyboardType="number-pad"
+            onChangeText={setCode}
+            style={styles.input}
+          />
+          <Pressable style={styles.button} disabled={loading} onPress={onVerifyEmail}>
+            <Text style={styles.buttonText}>{loading ? 'Verification...' : 'Valider le code'}</Text>
+          </Pressable>
+        </>
+      ) : (
+        <Pressable style={styles.button} disabled={loading} onPress={onSignup}>
+          <Text style={styles.buttonText}>{loading ? 'Inscription...' : "S'inscrire"}</Text>
+        </Pressable>
+      )}
       <View style={styles.row}>
         <Text>Deja un compte ? </Text>
         <Link href="/(auth)/login" style={styles.link}>

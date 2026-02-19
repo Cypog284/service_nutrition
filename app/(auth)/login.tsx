@@ -18,10 +18,16 @@ export default function LoginScreen() {
 
     try {
       setLoading(true);
-      const result = await signIn.create({ identifier: email.trim(), password });
+      const result = await signIn.create({
+        identifier: email.trim().toLowerCase(),
+        password,
+      });
+
       if (result.createdSessionId) {
         await setActive({ session: result.createdSessionId });
         router.replace('/(main)/(home)');
+      } else {
+        Alert.alert('Connexion impossible', 'Ce compte ne peut pas se connecter avec mot de passe.');
       }
     } catch (error: any) {
       Alert.alert('Connexion impossible', error?.errors?.[0]?.message || 'Verifie tes identifiants.');

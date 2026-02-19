@@ -21,7 +21,13 @@ export default function MainLayout() {
   return (
     <Tabs screenOptions={{ headerShown: false }}>
       <Tabs.Screen name="(home)" options={{ title: 'Accueil' }} />
-      <Tabs.Screen name="add" options={{ href: null }} />
+      <Tabs.Screen
+        name="add"
+        options={{
+          title: 'Ajouter',
+          tabBarButton: () => null,
+        }}
+      />
       <Tabs.Screen name="profile" options={{ title: 'Profil' }} />
     </Tabs>
   );
