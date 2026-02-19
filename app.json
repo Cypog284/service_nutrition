@@ -2,6 +2,7 @@
   "expo": {
     "name": "service_nutrition",
     "slug": "service_nutrition",
+    "scheme": "service-nutrition",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -33,7 +34,8 @@
         {
           "cameraPermission": "Autoriser l'application a utiliser la camera pour scanner les codes-barres."
         }
-      ]
+      ],
+      "expo-font"
     ]
   }
 }
