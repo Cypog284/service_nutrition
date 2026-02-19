@@ -1,32 +1,95 @@
-# Suivi Nutritionnel (Expo + TypeScript)
+# Service Nutrition (Expo + TypeScript)
 
-Application mobile simple avec Expo Router, auth Clerk, recherche/scan Open Food Facts, persistance locale AsyncStorage, et objectif calorique journalier.
+App mobile de suivi nutritionnel avec:
+- authentification Clerk
+- recherche et scan Open Food Facts
+- stockage local AsyncStorage
+- navigation Expo Router
 
-## Commandes de creation / installation
+## Prerequis
+
+- Node.js 22 LTS recommande
+- npm
+- Expo Go sur mobile (ou simulateur iOS/Android)
+
+Verification rapide:
 
 ```bash
-npx create-expo-app@latest suivi-nutritionnel --template
-cd suivi-nutritionnel
-npm install expo-router @clerk/clerk-expo expo-secure-store expo-camera @react-native-async-storage/async-storage react-native-safe-area-context --legacy-peer-deps
+node -v
+npm -v
 ```
 
-## Configuration
+## Installation (nouveau PC)
 
-1. Copier `.env.example` vers `.env`.
-2. Renseigner `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`.
-3. Lancer:
+```bash
+git clone <URL_DU_REPO>
+cd service_nutrition
+
+copy .env
+# ajouter la cle EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY dans .env
+
+npm ci
+npx expo-doctor
+npx tsc --noEmit
+npx expo start -c
+```
+
+## Scripts utiles
 
 ```bash
 npm start
+npm run ios
+npm run android
+npm run web
 ```
 
-## Notes
+## Pack de verification
 
-- Recherche Open Food Facts: API v1 `cgi/search.pl` avec debounce 450ms.
-- Scan code-barres: API v2 `api/v2/product/{barcode}.json`.
-- Header `User-Agent` envoye sur tous les appels OFF.
-- Persistance locale:
-  - `meals` (Meal[])
-  - `dailyCalorieGoal` (number)
-- Safe area: `SafeAreaProvider` + `SafeAreaView` (react-native-safe-area-context).
-- Les routes `(main)` sont protegees: redirection vers `/login` si non connecte.
+```bash
+npm ls --depth=0
+npx expo install --check
+npx expo-doctor
+npx tsc --noEmit
+```
+
+## Depannage rapide
+
+### 1) Erreur `Unable to resolve "./ExpoFontUtils"`
+
+```bash
+Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force
+Remove-Item -Recurse -Force node_modules,.expo,node_modules\.cache -ErrorAction SilentlyContinue
+npm ci
+npx expo install @expo/vector-icons expo-font expo-constants react-native-screens react-native-safe-area-context
+npx expo start -c
+```
+
+### 2) Erreur React Native `expected dynamic type 'boolean', but had type 'string'`
+
+```bash
+npx expo install expo-constants react-native-screens
+npx expo start -c
+```
+
+### 3) Clerk login: `Ce compte ne peut pas se connecter avec mot de passe`
+
+Verifier dans Clerk Dashboard:
+- que l'utilisateur a bien un mot de passe
+- que la methode Email + Password est activee
+- que la cle `.env` utilisee est celle de la bonne instance
+
+## Grandes lignes de l'architecture
+
+- `app/(auth)`: login + signup (inscription puis verification email en 2 etapes)
+- `app/(main)/(home)`: accueil, liste des repas, detail repas
+- `app/(main)/add`: ajout repas, recherche aliments, scanner code-barres
+- `app/(main)/profile`: infos utilisateur et deconnexion
+- `src/context/MealsContext.tsx`: etat global des repas/objectifs/brouillon
+- `src/api/openFoodFacts.ts`: appels API Open Food Facts
+- `src/storage/storage.ts`: persistance AsyncStorage
+
+## Notes techniques
+
+- `scheme` Expo configure dans `app.json`
+- plugin `expo-font` configure dans `app.json`
+- tabs custom avec icones `Ionicons`
