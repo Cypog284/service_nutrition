@@ -30,7 +30,7 @@ export default function LoginScreen() {
         Alert.alert('Connexion impossible', 'Ce compte ne peut pas se connecter avec mot de passe.');
       }
     } catch (error: any) {
-      Alert.alert('Connexion impossible', error?.errors?.[0]?.message || 'Verifie tes identifiants.');
+      Alert.alert('Connexion impossible', error?.errors?.[0]?.message || 'Verifier les identifiants.');
     } finally {
       setLoading(false);
     }

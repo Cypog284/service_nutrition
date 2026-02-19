@@ -43,7 +43,7 @@ export default function SignupScreen() {
         setPendingVerification(true);
       }
     } catch (error: any) {
-      Alert.alert('Inscription impossible', error?.errors?.[0]?.message || 'Verifie les informations.');
+      Alert.alert('Inscription impossible', error?.errors?.[0]?.message || 'Verifier les informations.');
     } finally {
       setLoading(false);
     }
@@ -65,7 +65,7 @@ export default function SignupScreen() {
         Alert.alert('Verification impossible', 'Le compte n est pas encore valide.');
       }
     } catch (error: any) {
-      Alert.alert('Code invalide', error?.errors?.[0]?.message || 'Verifie le code saisi.');
+      Alert.alert('Code invalide', error?.errors?.[0]?.message || 'Verifier le code saisi.');
     } finally {
       setLoading(false);
     }

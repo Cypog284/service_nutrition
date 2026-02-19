@@ -92,7 +92,7 @@ export default function AddMealScreen() {
   function onValidate() {
     const meal = addMealFromDraft();
     if (!meal) {
-      Alert.alert('Repas incomplet', 'Selectionne un type de repas et au moins un aliment.');
+      Alert.alert('Repas incomplet', 'Selectionner un type de repas et au moins un aliment.');
       return;
     }
 
