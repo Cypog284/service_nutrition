@@ -25,6 +25,15 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Autoriser l'application a utiliser la camera pour scanner les codes-barres."
+        }
+      ]
+    ]
   }
 }
