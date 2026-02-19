@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,29 +24,68 @@ export default function AddMealScreen() {
   const [results, setResults] = useState<Food[]>([]);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const latestSearchIdRef = useRef(0);
+  const previousDraftCountRef = useRef(draftMeal.foods.length);
 
   useEffect(() => {
+    const searchId = latestSearchIdRef.current + 1;
+    latestSearchIdRef.current = searchId;
+    const normalizedQuery = query.trim();
+
     const handle = setTimeout(async () => {
-      if (!query.trim()) {
-        setResults([]);
-        setError(null);
+      if (!normalizedQuery) {
+        if (searchId === latestSearchIdRef.current) {
+          setResults([]);
+          setError(null);
+          setSearching(false);
+        }
         return;
       }
 
       try {
         setSearching(true);
         setError(null);
-        const foods = await searchFoods(query);
-        setResults(foods);
+        const foods = await searchFoods(normalizedQuery);
+        if (searchId === latestSearchIdRef.current) {
+          setResults(foods);
+        }
       } catch (e: any) {
-        setError(e?.message || 'Erreur reseau pendant la recherche.');
+        if (searchId === latestSearchIdRef.current) {
+          setError(e?.message || 'Erreur reseau pendant la recherche.');
+        }
       } finally {
-        setSearching(false);
+        if (searchId === latestSearchIdRef.current) {
+          setSearching(false);
+        }
       }
     }, 450);
 
     return () => clearTimeout(handle);
   }, [query]);
+
+  useEffect(() => {
+    if (!feedback) {
+      return;
+    }
+
+    const handle = setTimeout(() => setFeedback(null), 1400);
+    return () => clearTimeout(handle);
+  }, [feedback]);
+
+  useEffect(() => {
+    const previousCount = previousDraftCountRef.current;
+    const currentCount = draftMeal.foods.length;
+
+    if (currentCount > previousCount) {
+      const lastFood = draftMeal.foods[currentCount - 1];
+      if (lastFood) {
+        setFeedback(`${lastFood.name} ajoute`);
+      }
+    }
+
+    previousDraftCountRef.current = currentCount;
+  }, [draftMeal.foods]);
 
   const totals = useMemo(() => calculateMealTotals(draftMeal.foods), [draftMeal.foods]);
 
@@ -59,7 +98,6 @@ export default function AddMealScreen() {
 
     setQuery('');
     setResults([]);
-    Alert.alert('Repas ajoute', `${meal.name} enregistre.`);
     router.replace('/(main)/(home)');
   }
 
@@ -95,6 +133,11 @@ export default function AddMealScreen() {
         </Pressable>
       </View>
 
+      {feedback ? (
+        <View style={styles.feedbackBox}>
+          <Text style={styles.feedbackText}>{feedback}</Text>
+        </View>
+      ) : null}
       {searching ? <Text>Recherche...</Text> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -151,6 +194,8 @@ const styles = StyleSheet.create({
   secondaryButton: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 10, padding: 11, alignItems: 'center' },
   secondaryText: { fontWeight: '600' },
   primaryText: { color: '#fff', fontWeight: '700' },
+  feedbackBox: { backgroundColor: '#ecfeff', borderColor: '#a5f3fc', borderWidth: 1, borderRadius: 10, padding: 10 },
+  feedbackText: { color: '#0f766e', fontWeight: '600' },
   error: { color: '#b91c1c' },
   resultsList: { maxHeight: 170 },
   resultCard: { borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 10, padding: 10, marginBottom: 8 },
